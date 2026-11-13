@@ -1,0 +1,193 @@
+---
+title: "Informe técnico de calidad de datos"
+subtitle: "Encuesta socioeconómica sintética 2026 — práctica integradora"
+author: 
+  - "Erika Cerda"
+  - "Maria del Carmen Moran"
+  - "Nathaly Veloz"
+lang: es
+format:
+  html:
+    embed-resources: true
+    toc: true
+    toc-depth: 3
+    code-fold: true
+    theme: cosmo
+  docx:
+    toc: true
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+library(here)
+library(dplyr)
+library(knitr)
+ruta_rds <- here::here('resultados', '07_paquete_reporte.rds')
+if (!file.exists(ruta_rds)) stop('Primero genere el RDS en la etapa 7')
+informe <- readRDS(ruta_rds)
+```
+
+## 1. Introducción
+
+Este informe presenta resultados de un **conjunto completamente sintético** para practicar la evaluación de archivos de datos. No contiene cifras reales del INEC y su distribución muestral fue desbalanceada deliberadamente.
+
+## 2. Objetivos
+
+- Identificar ausencias, formatos no válidos y relaciones incoherentes.
+- Mostrar indicadores con numeradores y denominadores verificables.
+- Comparar los períodos octubre y noviembre de 2026 y escenarios original/propuesta.
+- Documentar limitaciones antes de difundir resultados.
+
+## 3. Metodología y procedencia
+
+El conjunto contiene `r informe$metadatos$filas_original` registros de encuestas. Los controles se construyeron en scripts R independientes y se consolidaron en un archivo **RDS**. La etiqueta *pobreza didáctica* corresponde únicamente al umbral ilustrativo de USD `r informe$metadatos$umbral_pobreza_solo_didactico` por persona y mes. **No constituye una medición oficial.**
+
+La propuesta de normalización permanece en estado: **`r informe$metadatos$estado_correcciones`**.
+
+## 4. Indicadores de calidad
+
+```{r}
+#| label: tabla-indicadores
+knitr::kable(informe$tablas$indicadores,
+             caption='Indicadores por escenario (cifras del taller)')
+```
+
+```{r}
+#| label: figura-indicadores
+#| fig-cap: "Comparación descriptiva de indicadores."
+knitr::include_graphics(here::here('resultados','figuras','06_indicadores.png'))
+```
+
+**Pregunta: ¿Cómo varía un indicador entre escenarios?**
+
+Al comparar el escenario original con el propuesto, los indicadores de calidad muestran una notable estabilidad general. La completitud se mantiene en 99,68%, la unicidad en 98,50% y la consistencia en 99,33%. El único indicador que refleja una mejora efectiva es la validez, pasando del 99,57% al 99,69%, lo que representa la corrección exitosa de 14 registros. En términos prácticos, esto demuestra que las medidas de optimización aplicadas lograron depurar inconsistencias específicas de formato o estructura sin alterar la integridad ni la coherencia global del conjunto de datos.
+
+## 5. Comparación entre períodos
+
+```{r}
+#| label: tabla-periodos
+knitr::kable(informe$tablas$indicadores_periodo,
+             caption='Indicadores por período; mismas reglas y definiciones')
+```
+
+
+## 6. Educación y zonas
+
+```{r}
+#| label: figura-educacion
+#| fig-cap: "Distribución educativa por período y zona, en registros."
+knitr::include_graphics(here::here('resultados','figuras','06_educacion.png'))
+```
+
+**Pregunta: ¿Qué niveles educativos predominan por período?**
+
+Al analizar los niveles educativos por período de referencia, se observa una estructura estable donde la educación secundaria y superior concentran la mayor participación en octubre y noviembre. Sin embargo, al observar la distribución territorial, la zona urbana registra la mayor concentración de formación técnica y universitaria, mientras que en la zona rural cobra más peso la educación primaria y secundaria. Esta consistencia entre períodos refleja una muestra homogénea en el tiempo, permitiendo analizar el nivel educativo como un factor clave asociado a las diferencias de ingreso entre áreas urbanas y rurales.
+
+## 7. Ingresos y pobreza didáctica
+
+```{r}
+#| label: tabla-ingresos
+knitr::kable(informe$tablas$resumen_ingresos,
+             digits=2, caption='Media y mediana de ingresos monetarios válidos')
+```
+
+```{r}
+#| label: figura-ingresos
+#| fig-cap: "Distribución de ingresos. La vista está acercada a 0–3.000 USD."
+knitr::include_graphics(here::here('resultados','figuras','06_ingresos.png'))
+```
+
+```{r}
+#| label: figura-pobreza
+#| fig-cap: "Clasificación con umbral educativo; no es índice de pobreza oficial."
+knitr::include_graphics(here::here('resultados','figuras','06_pobreza.png'))
+```
+
+**Pregunta: ¿Cómo se distribuyen los ingresos observados?**
+
+El histograma de ingresos muestra una marcada asimetría positiva o sesgo a la derecha, concentrando a la mayoría de la población en tramos de ingresos moderados (entre 200 y 400 USD). Esta estructura se confirma estadísticamente al notar que la media supera de forma constante a la mediana en todas las zonas y períodos; por ejemplo, en octubre urbano la media alcanza 426,47 USD frente a una mediana de 279,36 USD. Esta brecha evidencia la presencia de ingresos altos que elevan el promedio, posicionando a la mediana como la medida más representativa del ingreso central del hogar.
+
+**Pregunta: ¿Qué proporción representa cada etiqueta de pobreza didáctica?**
+
+La estructura proporcional de la pobreza se analiza mediante el umbral de 185 USD mensuales por persona. La gráfica muestra que la mayor parte de la población encuestada se sitúa por encima de este límite, logrando una cobertura de ingresos superior a la línea de vulnerabilidad económica. No obstante, el grupo posicionado por debajo del umbral evidencia una proporción considerable que se concentra principalmente en la zona rural y en hogares de menor nivel formativo. Este análisis proporcional permite identificar visualmente la magnitud de la brecha de vulnerabilidad y orientar la atención socioeconómica.
+
+
+## 8. Alertas y propuestas de normalización
+
+```{r}
+#| label: tabla-alertas
+knitr::kable(head(informe$tablas$resumen_alertas, 15),
+             caption='Quince reglas con mayor frecuencia de alertas')
+```
+
+```{r}
+#| label: figura-alertas
+#| fig-cap: "Una persona puede tener más de una incidencia."
+knitr::include_graphics(here::here('resultados','figuras','06_alertas.png'))
+```
+
+**Pregunta: ¿Cuáles reglas generan más incidencias?**
+
+El análisis de alertas revela una fuerte concentración de las inconsistencias en un número reducido de reglas. La regla I01 encabeza la severidad con 36 incidencias registradas, seguida por la regla V06 con 24 alertas, acumulando entre ambas la mayor carga de inconsistencias. Más abajo se ubican las reglas I05 con 14 casos, e I07 y V07 con 13 incidencias cada una. Esta distribución demuestra que las anomalías no ocurren al azar, sino que responden a patrones sistemáticos en variables clave que requieren auditoría directa para garantizar la fiabilidad del levantamiento.
+
+Se registraron `r nrow(informe$bitacora)` propuestas de normalización, **no autorizadas**. La imputación estadística se examinó únicamente como escenario didáctico y no altera la base original.
+
+## 9. Interpretación y limitaciones
+
+La composición educativa y territorial del conjunto fue creada de forma desbalanceada; los resultados representan **solo esta simulación**. Las diferencias entre períodos no pueden interpretarse como tendencias poblacionales, ni los cambios entre escenario original/propuesta como mejoras oficiales sin validar su metodología y aprobación.
+
+**Preguntas de análisis sobre el ejercicio realizado**
+
+**¿Por qué un dataset con pocas ausencias todavía puede tener problemas de validez, unicidad e integridad?**
+
+Que no existan casillas vacías no garantiza datos correctos. Un registro presente puede ser inválido por errores de formato o rango, perder unicidad al estar duplicado, o carecer de integridad si contradice a otras variables o tablas relacionales. Estar lleno no implica estar libre de inconsistencias.
+
+**¿Cómo distinguirá una fila repetida de dos personas con un mismo identificador?**
+
+Una fila repetida es un duplicado idéntico en todos sus campos. En cambio, si dos personas comparten identificador, los registros tienen el mismo ID pero sus datos socioeconómicos son distintos, revelando un problema de unicidad que exige auditoría sobre el origen del código.
+
+**¿Qué significa un id_hogar sin correspondencia, y por qué no debemos eliminarlo sin investigación?**
+
+Indica que una persona apunta a un hogar inexistente en la base. No debe borrarse a ciegas porque podría ser un simple error tipográfico al digitar el ID. Eliminarlo sin investigar descartaría información útil del encuestado y alteraría los denominadores de la muestra.
+
+**¿Qué diferencia existe entre media y mediana ante un ingreso extremo alto?**
+
+Los ingresos muy altos inflan la media, arrastrándola hacia arriba. La mediana, al situarse en el centro de los datos ordenados, resiste esos valores extremos y refleja con mayor fidelidad cuál es el ingreso típico que percibe la mayoría de la población.
+
+**¿Cuál es la diferencia entre corrección propuesta y corrección aprobada?**
+
+La propuesta es una sugerencia técnica de depuración aún no autorizada. La aprobada es aquella validada e incorporada formalmente a la base. Mientras permanezca como propuesta, no modifica la base oficial ni altera los resultados definitivos del informe.
+
+**¿Qué indicador mejoró entre escenario original y propuesta? ¿Es correcto afirmar que mejoró la estadística oficial?**
+
+Mejoró únicamente la validez (del 99,57% al 99,69%), recuperando 14 registros válidos. No es correcto afirmar que mejoró la estadística oficial, ya que se trata de propuestas no autorizadas dentro de una simulación académica sintética.
+
+**¿Por qué saveRDS() es necesario antes de elaborar el reporte Quarto?**
+
+Permite congelar la base procesada en un archivo liviano. Así evitas repetir cálculos pesados cada vez que renderizas el documento en Quarto, garantizando rapidez, orden y reproducibilidad total en la generación del informe final.
+
+**¿Qué diferencia práctica existe entre generar un documento HTML y generar un sitio web de dos páginas?**
+
+El HTML crea un archivo único y continuo.El sitio web de dos páginas organiza el contenido de forma modular en pestañas independientes, permitiendo separar, por ejemplo, el resumen ejecutivo de los anexos técnicos para facilitar la lectura.
+
+**¿Por qué los resultados desbalanceados no deben extrapolarse a Ecuador?**
+
+La muestra proviene de un ejercicio sintético diseñado con un desbalance intencional. Al carecer de representatividad probabilística y de factores de expansión reales, cualquier intento de extrapolar los hallazgos al país generaría conclusiones falsas.
+
+**¿Por qué la variable pobreza_didactica no equivale a pobreza monetaria oficial?**
+
+La pobreza_didactica usa un umbral ilustrativo de USD 185 por persona, fijado solo para este taller. No aplica la metodología del INEC ni sus canastas oficiales, por lo que su función es puramente didáctica.
+
+## 10. Conclusiones
+
+El proceso de importación, perfilado, validación, integración y tabulación permitió producir resultados reproducibles. Antes de comunicar estos resultados, se deben inspeccionar las reglas, los denominadores, las incidencias y la bitácora de decisiones.
+
+## 11. Referencias y documentación
+
+- [R for Data Science (2e)](https://r4ds.hadley.nz/)
+- [Quarto — Getting Started](https://quarto.org/docs/get-started/)
+- [Quarto — MS Word](https://quarto.org/docs/output-formats/ms-word.html)
