@@ -1,9 +1,10 @@
 # Taller integrador — Encuesta socioeconómica sintética 2026
 
 Integrantes del grupo:
-Erika Cerda
-María del Carmen Moran
-Nathaly Veloz
+
+- Erika Cerda
+- María del Carmen Moran
+- Nathaly Veloz
 
 1. Abra `encuesta_calidad.Rproj` en RStudio.
 2. Lea `GUIA_TALLER_INTEGRADOR_PASO_A_PASO.md`.
